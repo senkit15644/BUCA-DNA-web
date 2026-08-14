@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model QuizSession {
+  id              String   @id @default(uuid())
+  guestId         String   // UUID stored in localStorage
+  createdAt       DateTime @default(now())
+  
+  // Result
+  topRole         String
+  secondaryRole   String?
+  isHybrid        Boolean  @default(false)
+  
+  // Scores stored as JSON for flexibility
+  rawScores       Json
+  normalizedScores Json
+  roleMatches     Json
+  
+  // Lead form relationship
+  leadForm        LeadForm?
+
+  @@index([guestId])
+}
+
+model LeadForm {
+  id              String   @id @default(uuid())
+  createdAt       DateTime @default(now())
+  
+  // User info
+  name            String
+  email           String
+  school          String?
+  grade           String?
+  
+  // Newsletter & Consent
+  optInNewsletter Boolean  @default(false)
+  consentData     Boolean  @default(true)
+  
+  // Link to quiz result
+  quizSessionId   String   @unique
+  quizSession     QuizSession @relation(fields: [quizSessionId], references: [id], onDelete: Cascade)
+}
